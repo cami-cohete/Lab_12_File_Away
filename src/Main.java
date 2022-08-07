@@ -1,77 +1,79 @@
 import javax.swing.*;
-import java.io.File;
-import java.util.ArrayList;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Scanner;
+
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class Main {
 
     public static void main(String[] args)
     {
         JFileChooser chooser = new JFileChooser();
+        Scanner inFile;
         File selectedFile;
-        String rec = "";
-        ArrayList<String> lines = new ArrayList<>();
+        String line;
+        int lineNum = 0;
+        //ArrayList<String> words = new ArrayList<>();
+
+
+        File workingDirectory = new File(System.getProperty("user.dir"));
+        chooser.setCurrentDirectory(workingDirectory);
 
         try
         {
-            File workingDirectory = new File(System.getProperty("user.dir"));
-
-            chooser.setCurrentDirectory(workingDirectory);
-            // Using the chooser adds some complexity to the code.
-            // we have to code the complete program within the conditional return of
-            // the filechooser because the user can close it without picking a file
-
-            if(chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
-            {
+            if(chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                 selectedFile = chooser.getSelectedFile();
+
                 Path file = selectedFile.toPath();
-                // Typical java pattern of inherited classes
-                // we wrap a BufferedWriter around a lower level BufferedOutputStream
-                InputStream in =
-                        new BufferedInputStream(Files.newInputStream(file, CREATE));
-                BufferedReader reader =
-                        new BufferedReader(new InputStreamReader(in));
+                InputStream in = new BufferedInputStream(Files.newInputStream(file, CREATE));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in));
 
-                // Finally we can read the file LOL!
-                int line = 0;
-                while(reader.ready())
+                inFile = new Scanner(selectedFile);
+                System.out.println("\n" + selectedFile);
+
+                String[] words = new String[0];
+                int wordCounter = 0;
+                int count = 0;
+                while (inFile.hasNextLine())
                 {
-                    rec = reader.readLine();
-                    lines.add(rec);
-                    line++;
-                    // echo to screen
-                    System.out.printf("\nLine %4d %-60s ", line, rec);
-                }
-                for(String l:lines)
-                {
-                    System.out.println(l);
+
+                    line = inFile.nextLine();
+                    lineNum++;
+                    System.out.printf("\nLine %-4d %-65s ", lineNum, line);
+
+                    words = line.split(" ");
+                    wordCounter = words.length + wordCounter;
+
+                    for(int i = 0; i < line.length(); i++)
+                    {
+                        if(line.charAt(i) != ' ')
+                            count++;
+                    }
                 }
 
-                String fields[] = lines.get(5).split(", ");
-                for(String f:fields)
-                    System.out.println(f);
-
-                reader.close(); // must close the file to seal it and flush buffer
                 System.out.println("\n\nData file read!");
+                System.out.println("\nThe number of words in this file is: " + wordCounter);
+                System.out.println("The number of characters in this file is: " + count);
             }
-            else  // user closed the file dialog wihtout choosing
+            else
             {
-                System.out.println("Failed to choose a file to process");
-                System.out.println("Run the program again!");
+                System.out.println("Failed to choose a file to process!");
+                System.out.println("Terminating program. Please try again.");
                 System.exit(0);
             }
-        }  // end of TRY
+        }
         catch (FileNotFoundException e)
         {
-            System.out.println("File not found!!!");
+            System.out.println("ERROR! File not found!");
             e.printStackTrace();
         }
         catch (IOException e)
         {
+            System.out.println("IOException Error");
             e.printStackTrace();
         }
     }
 
-}
-
-    }
 }
